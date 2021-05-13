@@ -34,3 +34,6 @@
 # Juce libraries & builds
 Builds/
 JuceLibraryCode/
+
+# VS code files
+*.vscode/
