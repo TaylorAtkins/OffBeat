@@ -20,10 +20,12 @@ MetronomeComponent::MetronomeComponent()
   setFramesPerSecond(60);
   totalBeats = 0;
   currentBeat = 0;
-  playerNum = 4;
+  playerNum = 2;
   secPerBeat = 0.0;
   beats = nullptr;
   previousFrames = 0;
+  minBPM = 60;
+  maxBPM = 200;
   //currentPlayer = 0;
 }
 
@@ -131,9 +133,10 @@ void MetronomeComponent::newRhythm()
   delete[] colorDisbursement;
 
   previousFrames = getFrameCounter();
-  secPerBeat = 0.5;
+  secPerBeat = 60.0 / (float)(random.nextInt(juce::Range<int>(minBPM, maxBPM)));
+  //secPerBeat = 0.5;
   currentBeat = 0;
-  audioManager.setFrequencyCode(beats[0].player);
+  audioManager.generateRhythm(beats, totalBeats, secPerBeat);
 }
 
 void MetronomeComponent::update()
@@ -142,14 +145,10 @@ void MetronomeComponent::update()
 
 void MetronomeComponent::paint(juce::Graphics &g)
 {
-    if (secPerBeat > 0.0)
-    {
-      int prevBeat = currentBeat;
-      currentBeat = int((getFrameCounter() - previousFrames) / 60.0 / secPerBeat) % totalBeats;
-      // Sets audio when beat changes
-      if (currentBeat != prevBeat)
-        audioManager.setFrequencyCode(beats[currentBeat].player);
-    }
+  if (secPerBeat > 0.0)
+  {
+    currentBeat = int((getFrameCounter() - previousFrames) / 60.0 / secPerBeat) % totalBeats;
+  }
   g.fillAll(juce::Colour(0xFF000000));
 
   if (beats)

@@ -4,6 +4,7 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="a6Ah90" name="OffBeat">
     <GROUP id="{A58257E1-4033-2090-3247-DD42229C0E4C}" name="Source">
+      <FILE id="ra5Ccn" name="Beat.h" compile="0" resource="0" file="Source/Beat.h"/>
       <FILE id="ub8Bkr" name="AudioManagerComponent.cpp" compile="1" resource="0"
             file="Source/AudioManagerComponent.cpp"/>
       <FILE id="a06VTq" name="AudioManagerComponent.h" compile="0" resource="0"

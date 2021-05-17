@@ -12,17 +12,11 @@
 
 #include <JuceHeader.h>
 #include "AudioManagerComponent.h"
+#include "Beat.h"
 
 //==============================================================================
 /*
 */
-
-struct Beat
-{
-  int player;
-  juce::Colour defaultColor;
-  juce::Colour selectedColor;
-};
 
 class MetronomeComponent : public juce::AnimatedAppComponent
 {
@@ -42,6 +36,8 @@ private:
   int previousFrames;
   //int currentPlayer;
   float secPerBeat;
+  int minBPM;
+  int maxBPM;
   Beat *beats;
   AudioManagerComponent audioManager;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MetronomeComponent)
