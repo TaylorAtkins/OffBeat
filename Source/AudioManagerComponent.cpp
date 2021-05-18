@@ -62,6 +62,7 @@ void AudioManagerComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo
     if (roundCount < 4 && samples)
     {
       sample = samples[currentSample] * 0.2f;
+      assert(sample <= 1.0f && sample >= -1.0f );
     }
     leftBuffer[sampleIndex] = sample;
     rightBuffer[sampleIndex] = sample;
@@ -76,18 +77,13 @@ void AudioManagerComponent::generateRhythm(Beat *beats, int totalBeats, float se
 
   totalSamples = secPerBeat * totalBeats * currentSampleRate;
   samples = new float[totalSamples];
-  //rhythmSynth.generateRhythm(beats, totalBeats, secPerBeat, currentSampleRate);
-  //rhythmSynth.outputSamples(samples);
-
-  // if (samples)
-  //   delete[] samples;
-  // totalSamples = secPerBeat * totalBeats * sampleRate;
-  // samples = new float[totalSamples];
 
   int samplesPerBeat = secPerBeat * currentSampleRate;
   float waitTime = (secPerBeat - toneDuration) / 2.0f;
   if (waitTime < 0)
     waitTime = 0.0f;
+  for (int i = 0; i < totalSamples; ++i)
+      samples[i] = 0.0f;
 
   for (int beatIndex = 0; beatIndex < totalBeats; ++beatIndex)
   {
@@ -99,18 +95,17 @@ void AudioManagerComponent::generateRhythm(Beat *beats, int totalBeats, float se
     {
       if (((float)sample / currentSampleRate) > waitTime && ((float)sample / currentSampleRate) <= (waitTime + toneDuration))
       {
-        //std::cout << "time of sample:" << ((float)sample/currentSampleRate) << "\t Wait Time:" << waitTime << "\t End WaitTime:" << (waitTime + toneDuration) << std::endl;
+
         samples[sample + samplesPerBeat * beatIndex] = (float)std::sin(phase * phaseChange);
         //phase += phaseChange;
         ++phase;
       }
-      else
-        samples[sample + samplesPerBeat * beatIndex] = 0.0f;
     }
   }
   roundCount = 0;
   currentSample = 0;
 }
+
 
 void AudioManagerComponent::releaseResources()
 {

@@ -72,7 +72,6 @@ void MetronomeComponent::newRhythm()
     ++colorDisbursement[color];
   }
 
-  std::cout << totalBeats << std::endl;
   // Loops through each beat an assigns it a player and color
   for (int i = 0; i < totalBeats; ++i)
   {
