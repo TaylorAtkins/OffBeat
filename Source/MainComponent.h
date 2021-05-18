@@ -9,6 +9,11 @@
     your controls and content.
 */
 //==============================================================================
+enum RadioButtonIds
+{
+    PlayerNumber = 1001
+};
+
 class MainComponent : public juce::Component, public juce::Button::Listener
 {
 public:
@@ -21,6 +26,9 @@ public:
 private:
     MetronomeComponent metronome;
     juce::TextButton playButton;
+    juce::TextButton startButton;
+    juce::TextButton playerNumberButtons[4];
+    int playerNum;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

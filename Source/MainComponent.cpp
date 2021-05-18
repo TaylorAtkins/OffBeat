@@ -5,15 +5,54 @@ MainComponent::MainComponent() : juce::Component()
 {
     setSize(600, 400);
     addAndMakeVisible(playButton);
-    playButton.setButtonText ("Play!");
+    playButton.setButtonText ("Play");
     playButton.addListener (this);
     playButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFFFFFFFF));
-   // playButton.setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xFFFF658A));
     playButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xFF000000));
-    //playButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xFFFF658A));
+    
+    addChildComponent(startButton);
+    startButton.setEnabled(false);
+    startButton.setVisible(false);
+    startButton.setButtonText ("Start Game");
+    startButton.addListener (this);
+    startButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFFFFFFFF));
+    startButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xFF000000));
+    
+    for (int i = 0; i < 4; ++i){
+        addChildComponent(playerNumberButtons[i]);
+        playerNumberButtons[i].setEnabled(false);
+        playerNumberButtons[i].setVisible(false);
+        playerNumberButtons[i].setButtonText (std::to_string(i + 1));
+        playerNumberButtons[i].setRadioGroupId(PlayerNumber);
+        playerNumberButtons[i].setClickingTogglesState (true);
+        
+        playerNumberButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colour(0xFFFFFFFF));
+        playerNumberButtons[i].setColour(juce::TextButton::textColourOffId, juce::Colour(0xFF000000));
+        playerNumberButtons[i].setColour(juce::TextButton::textColourOnId, juce::Colour(0xFF000000));
+        
+        if(i == 0){
+            playerNumberButtons[i].onClick = [this] (){ playerNum = 1;};
+            playerNumberButtons[i].setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xFFFF658A));
+        }
+        else if (i == 1)
+        {
+            playerNumberButtons[i].onClick = [this] (){ playerNum = 2;};
+            playerNumberButtons[i].setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xFF55FFAA));
+        }
+        else if (i == 2)
+        {
+            playerNumberButtons[i].onClick = [this] (){ playerNum = 3;};
+            playerNumberButtons[i].setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xFF37F7FF));
+        }
+        else{
+            playerNumberButtons[i].onClick = [this] (){ playerNum = 4;};
+            playerNumberButtons[i].setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xFFC853D8));
+        }
+    }
+    playerNumberButtons[0].setToggleState(true, juce::dontSendNotification);
+    playerNum = 1;
+
     addChildComponent(metronome);
-    //addAndMakeVisible(metronome);
-    //metronome.newRhythm();
 }
 
 MainComponent::~MainComponent()
@@ -32,10 +71,20 @@ void MainComponent::resized()
     // If you add any child components, this is where you should
     // update their positions.
     metronome.setBounds(0, 0, getWidth(), getHeight());
-    int buttonHeight = getHeight()/8;
-    //playButton.changeWidthToFitText(buttonHeight);
-    int buttonWidth = getWidth()/4;
-    playButton.setBounds(getWidth() / 2 - buttonWidth/2, getHeight()/ 2 - buttonHeight/2, buttonWidth, buttonHeight);
+    int playButtonHeight = getHeight()/8;
+    int playButtonWidth = getWidth()/4;
+    playButton.setBounds(getWidth() / 2 - playButtonWidth/2, getHeight()/ 2 - playButtonHeight/2, playButtonWidth, playButtonHeight);
+    
+    int startButtonHeight = getHeight()/8;
+    int startButtonWidth = getWidth()/4;
+    startButton.setBounds(getWidth() / 2 - startButtonWidth/2, getHeight() - (startButtonHeight + 10), startButtonWidth, startButtonHeight);
+    
+    int playerButtonHeight = getHeight()/4;
+    int playerButtonWidth = playerButtonHeight;
+    int spacing = (getWidth() - playerButtonWidth * 4) / 5;
+    for (int i = 0; i < 4; ++i){
+       playerNumberButtons[i].setBounds((i + 1) * spacing + i * playerButtonWidth, getHeight() / 2 - playerButtonHeight/2, playerButtonWidth, playerButtonHeight);
+    }
 }
 
 void MainComponent::buttonClicked(juce::Button *button)
@@ -45,7 +94,27 @@ void MainComponent::buttonClicked(juce::Button *button)
     {
         playButton.setEnabled(false);
         playButton.setVisible(false);
+        
+        startButton.setEnabled(true);
+        startButton.setVisible(true);
+        
+        for (int i = 0; i < 4; ++i){
+            playerNumberButtons[i].setEnabled(true);
+            playerNumberButtons[i].setVisible(true);
+        }
+    }
+    if(button == &startButton)
+    {
+        startButton.setEnabled(false);
+        startButton.setVisible(false);
+        
+        for (int i = 0; i < 4; ++i){
+            playerNumberButtons[i].setEnabled(false);
+            playerNumberButtons[i].setVisible(false);
+        }
+        
         metronome.setVisible(true);
+        metronome.setPlayerNumber(playerNum);
         metronome.newRhythm();
     }
 }

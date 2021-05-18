@@ -35,6 +35,9 @@ MetronomeComponent::~MetronomeComponent()
     delete[] beats;
 }
 
+void MetronomeComponent::setPlayerNumber(int playerNum){
+    this->playerNum = playerNum;
+}
 void MetronomeComponent::newRhythm()
 {
   if (beats)

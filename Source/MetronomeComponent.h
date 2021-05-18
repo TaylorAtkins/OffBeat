@@ -26,6 +26,7 @@ public:
   void update() override;
   void paint(juce::Graphics &) override;
   void resized() override;
+  void setPlayerNumber(int playerNum);
   void newRhythm();
   void mouseDoubleClick(const juce::MouseEvent &event) override;
 
