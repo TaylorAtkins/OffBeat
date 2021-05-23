@@ -4,17 +4,20 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="a6Ah90" name="OffBeat">
     <GROUP id="{A58257E1-4033-2090-3247-DD42229C0E4C}" name="Source">
+      <FILE id="QEhpne" name="AudioManager.cpp" compile="1" resource="0"
+            file="Source/AudioManager.cpp"/>
+      <FILE id="IX6CTP" name="AudioManager.h" compile="0" resource="0" file="Source/AudioManager.h"/>
       <FILE id="ra5Ccn" name="Beat.h" compile="0" resource="0" file="Source/Beat.h"/>
-      <FILE id="ub8Bkr" name="AudioManagerComponent.cpp" compile="1" resource="0"
-            file="Source/AudioManagerComponent.cpp"/>
-      <FILE id="a06VTq" name="AudioManagerComponent.h" compile="0" resource="0"
-            file="Source/AudioManagerComponent.h"/>
       <FILE id="i02KCl" name="MetronomeComponent.cpp" compile="1" resource="0"
             file="Source/MetronomeComponent.cpp"/>
       <FILE id="IPUC3s" name="MetronomeComponent.h" compile="0" resource="0"
             file="Source/MetronomeComponent.h"/>
       <FILE id="G6heLb" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="aANxlM" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="Ca3oTt" name="RhythmProcessor.cpp" compile="1" resource="0"
+            file="Source/RhythmProcessor.cpp"/>
+      <FILE id="YKPxMs" name="RhythmProcessor.h" compile="0" resource="0"
+            file="Source/RhythmProcessor.h"/>
       <FILE id="bfR1h7" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
     </GROUP>

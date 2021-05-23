@@ -26,6 +26,7 @@ MetronomeComponent::MetronomeComponent()
   previousFrames = 0;
   minBPM = 60;
   maxBPM = 200;
+  //audioManager = new AudioManagerComponent(roundBroadcaster);
   //currentPlayer = 0;
 }
 
@@ -33,10 +34,18 @@ MetronomeComponent::~MetronomeComponent()
 {
   if (beats)
     delete[] beats;
+
+  //delete audioManager;
 }
 
-void MetronomeComponent::setPlayerNumber(int playerNum){
-    this->playerNum = playerNum;
+void MetronomeComponent::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster)
+{
+  audioManager.setBroadcaster(roundBroadcaster);
+}
+
+void MetronomeComponent::setPlayerNumber(int playerNum)
+{
+  this->playerNum = playerNum;
 }
 void MetronomeComponent::newRhythm()
 {

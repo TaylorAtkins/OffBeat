@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "MetronomeComponent.h"
+#include <unistd.h>
 
 //==============================================================================
 /*
@@ -14,7 +15,7 @@ enum RadioButtonIds
     PlayerNumber = 1001
 };
 
-class MainComponent : public juce::Component, public juce::Button::Listener
+class MainComponent : public juce::Component, public juce::Button::Listener, public juce::ChangeListener
 {
 public:
     MainComponent();
@@ -22,6 +23,8 @@ public:
     void buttonClicked(juce::Button *button) override;
     void paint(juce::Graphics &) override;
     void resized() override;
+    void changeListenerCallback(juce::ChangeBroadcaster *source) override;
+    void showRoundBanner();
 
 private:
     MetronomeComponent metronome;
@@ -29,6 +32,9 @@ private:
     juce::TextButton startButton;
     juce::TextButton playerNumberButtons[4];
     int playerNum;
+    juce::ChangeBroadcaster roundBroadcaster;
+    int rounds;
+    juce::Label roundLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
