@@ -38,9 +38,9 @@ MetronomeComponent::~MetronomeComponent()
   //delete audioManager;
 }
 
-void MetronomeComponent::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster)
+void MetronomeComponent::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster)
 {
-  audioManager.setBroadcaster(roundBroadcaster);
+  audioManager.setBroadcaster(roundBroadcaster, clapBroadcaster);
 }
 
 void MetronomeComponent::setPlayerNumber(int playerNum)

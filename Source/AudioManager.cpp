@@ -24,9 +24,9 @@ AudioManager::~AudioManager()
   audioDevice.removeAudioCallback(&audioPlayer);
 }
 
-void AudioManager::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster)
+void AudioManager::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster)
 {
-  processor.setBroadcaster(roundBroadcaster);
+  processor.setBroadcaster(roundBroadcaster, clapBroadcaster);
 }
 
 void AudioManager::generateRhythm(Beat *beats, int totalBeats, float secPerBeat)

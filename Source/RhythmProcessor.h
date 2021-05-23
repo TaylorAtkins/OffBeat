@@ -21,7 +21,7 @@ public:
   void prepareToPlay(double sampleRate, int maximumExpectedSamplesPerBlock) override;
   void releaseResources() override;
   void processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) override;
-  void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster);
+  void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster);
   void generateRhythm(Beat *beats, int totalBeats, float secPerBeat);
   const juce::String getName() const override;
   virtual double getTailLengthSeconds() const override;
@@ -41,10 +41,22 @@ private:
   float *samples;
   int currentSample;
   int totalSamples;
+  int samplesPerBeat;
+  int currentBeat;
+  int totalBeats;
   int roundCount;
+  int windowSize;
+  int soundDuration;
+  int clapCount;
+  int minDuration;
+  int maxDuration;
+  float threshold;
+  std::list<float> sampleWindow;
   float toneDuration;
   float currentSampleRate;
   float *frequencies;
+  Beat *beats;
   juce::ChangeBroadcaster *roundBroadcaster;
+  juce::ChangeBroadcaster *clapBroadcaster;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RhythmProcessor)
 };

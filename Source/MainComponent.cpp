@@ -57,6 +57,7 @@ MainComponent::MainComponent() : juce::Component()
 
     //addAndMakeVisible(roundBroadcaster);
     roundBroadcaster.addChangeListener(this);
+    clapBroadcaster.addChangeListener(this);
 
     roundLabel.setJustificationType(juce::Justification::centred);
 
@@ -65,10 +66,21 @@ MainComponent::MainComponent() : juce::Component()
     // roundLabel.setColour(juce::Label::outlineColourId, juce::Colour(0xFFFF658A));
     roundLabel.setColour(juce::Label::textColourId, juce::Colour(0xFFFF658A));
     rounds = 1;
+    std::string message = "Round " + std::to_string(rounds);
+    roundLabel.setText(message, juce::dontSendNotification);
     addChildComponent(roundLabel);
-    // addAndMakeVisible(roundLabel);
-
-    metronome.setBroadcaster(&roundBroadcaster);
+    //addAndMakeVisible(roundLabel);
+    
+    clapLabel.setFont(juce::Font(20.0, juce::Font::bold));
+    clapLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xFFFFFFFF));
+    clapLabel.setColour(juce::Label::textColourId, juce::Colour(0xFFFF658A));
+    claps = 0;
+    message = "Claps " + std::to_string(claps);
+    clapLabel.setText(message, juce::dontSendNotification);
+    //addChildComponent(clapLabel);
+    addAndMakeVisible(clapLabel);
+    
+    metronome.setBroadcaster(&roundBroadcaster, &clapBroadcaster);
     addChildComponent(metronome);
 }
 
@@ -88,7 +100,7 @@ void MainComponent::resized()
     // This is called when the MainComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
-    metronome.setBounds(0, 0, getWidth(), getHeight());
+    metronome.setBounds(0, getHeight() / 4, getWidth(), getHeight() * 3 / 4);
 
     int playButtonHeight = getHeight() / 8;
     int playButtonWidth = getWidth() / 4;
@@ -107,7 +119,9 @@ void MainComponent::resized()
     }
 
     int roundLabelHeight = getHeight() / 4;
-    roundLabel.setBounds(0, getHeight() / 2 - playButtonHeight / 2, getWidth(), roundLabelHeight);
+    roundLabel.setBounds(0, getHeight() - roundLabelHeight, getWidth(), roundLabelHeight);
+    int clapLabelHeight = getHeight() / 4;
+    clapLabel.setBounds(0, 0, getWidth(), clapLabelHeight);
 }
 
 void MainComponent::buttonClicked(juce::Button *button)
@@ -140,7 +154,8 @@ void MainComponent::buttonClicked(juce::Button *button)
         showRoundBanner();
         metronome.setPlayerNumber(playerNum);
         metronome.newRhythm();
-        roundLabel.setVisible(false);
+        roundLabel.setVisible(true);
+        clapLabel.setVisible(true);
         metronome.setVisible(true);
         ++rounds;
     }
@@ -151,10 +166,17 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster *source)
     if (source == &roundBroadcaster)
     {
         metronome.setVisible(false);
-        showRoundBanner();
+        std::string message = "Round " + std::to_string(rounds);
+        roundLabel.setText(message, juce::dontSendNotification);
         metronome.newRhythm();
-        roundLabel.setVisible(false);
         metronome.setVisible(true);
+        claps = 0;
+    }
+    if (source == &clapBroadcaster)
+    {
+        ++claps;
+        std::string message = "Claps " + std::to_string(claps);
+        clapLabel.setText(message, juce::dontSendNotification);
     }
 }
 
@@ -162,6 +184,4 @@ void MainComponent::showRoundBanner()
 {
     std::string message = "Round " + std::to_string(rounds);
     roundLabel.setText(message, juce::dontSendNotification);
-    roundLabel.setVisible(true);
-    roundLabel.setVisible(false);
 }

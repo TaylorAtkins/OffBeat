@@ -22,6 +22,21 @@ RhythmProcessor::RhythmProcessor()
   frequencies[3] = 440.00; // A4
   frequencies[4] = 523.25; // C5
   currentSampleRate = 48000;
+  samplesPerBeat = 0;
+  beats = nullptr;
+  totalBeats = 0;
+  threshold = 0.0f;
+
+  soundDuration = 0;
+  clapCount = 0;
+  minDuration = 5;
+  maxDuration = 30;
+  threshold = 0.30;
+  windowSize = 20;
+  for (int i = 0; i < windowSize; ++i)
+    sampleWindow.push_back(0.0f);
+
+  currentBeat = 0;
 }
 
 RhythmProcessor::~RhythmProcessor()
@@ -40,21 +55,66 @@ void RhythmProcessor::releaseResources()
 }
 void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages)
 {
-
   for (int sampleIndex = 0; sampleIndex < buffer.getNumSamples(); ++sampleIndex)
   {
     if (currentSample >= totalSamples)
     {
       currentSample = 0;
+      currentBeat = 0;
       if (roundCount > -1)
         ++roundCount;
       if (roundCount >= 4)
         roundBroadcaster->sendChangeMessage();
     }
-    //std::cout << "test";
 
-    //float sample = rhythmSynth.getNextSample();
-    //std::cout << samples[currentSample] << '\t';
+    //If we are on the next beat, verify number of claps and reset variables
+    if (roundCount > -1)
+    {
+      if (currentBeat != currentSample % samplesPerBeat)
+      {
+        // If more than one player clapped on a beat or a player clapper during a rest, end game
+        //if((clapCount != 1 && beats[currentBeat].player != 0) || (clapCount > 0 && beats[currentBeat].player == 0))
+        //if(clapCount > 0)
+        //clapBroadcaster->sendChangeMessage();
+        ++currentBeat;
+        //soundDuration = 0;
+        clapCount = 0;
+      }
+
+      //Average the left and right inputs
+      //float input = buffer.getSample(0, sampleIndex) * buffer.getSample(1, sampleIndex) / 2.0f;
+
+      float input = buffer.getSample(0, sampleIndex);
+
+      // Update window with new value
+      sampleWindow.push_back(input);
+      sampleWindow.pop_front();
+
+      float average = 0.0;
+      //Average all values in sampleWindow
+      for (float sampleToAverage : sampleWindow)
+      {
+        average += sampleToAverage;
+      }
+      average /= (float)windowSize;
+
+      if (average > threshold)
+      {
+        ++soundDuration;
+      }
+      else
+      {
+        if (soundDuration >= minDuration && soundDuration <= maxDuration)
+        {
+          ++clapCount;
+          clapBroadcaster->sendChangeMessage();
+        }
+        soundDuration = 0;
+      }
+
+      //assert(soundDuration ==0);
+    }
+
     float sample = 0.0f;
     if (roundCount >= 4)
     {
@@ -65,18 +125,24 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
       sample = samples[currentSample] * 0.2f;
       assert(sample <= 1.0f && sample >= -1.0f);
     }
+    //assert(leftInput[sampleIndex] ==0);
+    //Left Channel
+    //leftOutput[sampleIndex] = sample;
+    //Right Channel
+    //rightOutput[sampleIndex] = sample;
 
-    for (int j = 0; j < buffer.getNumChannels(); ++j)
-    {
+    //Left Channel
+    buffer.setSample(0, sampleIndex, sample);
+    //Right Channel
+    buffer.setSample(1, sampleIndex, sample);
 
-      buffer.setSample(j, sampleIndex, sample);
-    }
     ++currentSample;
   }
 }
-void RhythmProcessor::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster)
+void RhythmProcessor::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster)
 {
   this->roundBroadcaster = roundBroadcaster;
+  this->clapBroadcaster = clapBroadcaster;
 }
 
 void RhythmProcessor::generateRhythm(Beat *beats, int totalBeats, float secPerBeat)
@@ -86,8 +152,9 @@ void RhythmProcessor::generateRhythm(Beat *beats, int totalBeats, float secPerBe
 
   totalSamples = secPerBeat * totalBeats * currentSampleRate;
   samples = new float[totalSamples];
-
-  int samplesPerBeat = secPerBeat * currentSampleRate;
+  samplesPerBeat = secPerBeat * currentSampleRate;
+  this->totalBeats = totalBeats;
+  this->beats = beats;
   float waitTime = (secPerBeat - toneDuration) / 2.0f;
   if (waitTime < 0)
     waitTime = 0.0f;
@@ -113,6 +180,7 @@ void RhythmProcessor::generateRhythm(Beat *beats, int totalBeats, float secPerBe
   }
   roundCount = 0;
   currentSample = 0;
+  currentBeat = 0;
 }
 
 const juce::String RhythmProcessor::getName() const

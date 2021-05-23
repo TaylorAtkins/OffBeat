@@ -33,8 +33,11 @@ private:
     juce::TextButton playerNumberButtons[4];
     int playerNum;
     juce::ChangeBroadcaster roundBroadcaster;
+    juce::ChangeBroadcaster clapBroadcaster;
     int rounds;
+    int claps;
     juce::Label roundLabel;
+    juce::Label clapLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
