@@ -20,9 +20,12 @@ public:
   ~RhythmProcessor();
   void prepareToPlay(double sampleRate, int maximumExpectedSamplesPerBlock) override;
   void releaseResources() override;
+  //void processBlockBypassed(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) override;
   void processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) override;
-  void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster);
+  void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcastero, juce::ChangeBroadcaster *offBeatBroadcaster);
   void generateRhythm(Beat *beats, int totalBeats, float secPerBeat);
+    void setSensitivity(float sensitivity);
+
   const juce::String getName() const override;
   virtual double getTailLengthSeconds() const override;
   bool acceptsMidi() const override;
@@ -38,12 +41,15 @@ public:
   void setStateInformation(const void *data, int sizeInBytes) override;
 
 private:
+  bool isPlaying;
+  bool isProcessing;
   float *samples;
   int currentSample;
   int totalSamples;
   int samplesPerBeat;
   int currentBeat;
   int totalBeats;
+  int missedBeats;
   int roundCount;
   int windowSize;
   int soundDuration;
@@ -58,5 +64,7 @@ private:
   Beat *beats;
   juce::ChangeBroadcaster *roundBroadcaster;
   juce::ChangeBroadcaster *clapBroadcaster;
+  juce::ChangeBroadcaster *loseBroadcaster;
+  juce::ChangeBroadcaster *offBeatBroadcaster;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RhythmProcessor)
 };

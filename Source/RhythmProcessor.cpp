@@ -13,7 +13,9 @@ RhythmProcessor::RhythmProcessor()
 {
   samples = nullptr;
   currentSample = 0;
-  roundCount = -1;
+  roundCount = 0;
+  isPlaying = false;
+  isProcessing = false;
   toneDuration = 0.25f;
   frequencies = new float[5];
   frequencies[0] = 0.00;   // No Audio (Rest)
@@ -25,12 +27,11 @@ RhythmProcessor::RhythmProcessor()
   samplesPerBeat = 0;
   beats = nullptr;
   totalBeats = 0;
-  threshold = 0.0f;
 
   soundDuration = 0;
   clapCount = 0;
-  minDuration = 5;
-  maxDuration = 30;
+  minDuration = 20;
+  maxDuration = 500;
   threshold = 0.30;
   windowSize = 20;
   for (int i = 0; i < windowSize; ++i)
@@ -46,37 +47,63 @@ RhythmProcessor::~RhythmProcessor()
   if (samples)
     delete[] samples;
 }
+
 void RhythmProcessor::prepareToPlay(double sampleRate, int maximumExpectedSamplesPerBlock)
 {
   currentSampleRate = sampleRate;
 }
+
 void RhythmProcessor::releaseResources()
 {
 }
+
 void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages)
 {
   for (int sampleIndex = 0; sampleIndex < buffer.getNumSamples(); ++sampleIndex)
   {
+    // If at the end of the rhythm, check is the rhythm should be played again
     if (currentSample >= totalSamples)
     {
+      // Reset samples to the begining of the rhythm
       currentSample = 0;
       currentBeat = 0;
-      if (roundCount > -1)
+      if (isPlaying)
+      {
+        if (roundCount == 0)
+        {
+          // Starts processing audio input after the thythm has been played one time through
+          isProcessing = true;
+        }
+        else if (roundCount >= 4)
+        {
+          // Triggers callback to generate new rhythm & pauses audio output and processing
+          roundBroadcaster->sendChangeMessage();
+          isPlaying = false;
+          isProcessing = false;
+        }
         ++roundCount;
-      if (roundCount >= 4)
-        roundBroadcaster->sendChangeMessage();
+      }
     }
 
-    //If we are on the next beat, verify number of claps and reset variables
-    if (roundCount > -1)
+    // Process input audio lokking for claps
+    if (isProcessing)
     {
-      if (currentBeat != currentSample % samplesPerBeat)
+      //If we are on the next beat, verify number of claps and reset variables
+      if (currentBeat != ((int)currentSample / samplesPerBeat))
       {
         // If more than one player clapped on a beat or a player clapper during a rest, end game
-        //if((clapCount != 1 && beats[currentBeat].player != 0) || (clapCount > 0 && beats[currentBeat].player == 0))
-        //if(clapCount > 0)
-        //clapBroadcaster->sendChangeMessage();
-        ++currentBeat;
+        if ((clapCount != 1 && beats[currentBeat].player != 0) || (clapCount > 0 && beats[currentBeat].player == 0))
+        {
+          ++missedBeats;
+          offBeatBroadcaster->sendChangeMessage();
+          if (missedBeats >= 3)
+          {
+            loseBroadcaster->sendChangeMessage();
+            isPlaying = false;
+            isProcessing = false;
+          }
+        }
+        currentBeat = (int)(currentSample / samplesPerBeat);
         //soundDuration = 0;
         clapCount = 0;
       }
@@ -116,20 +143,13 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
     }
 
     float sample = 0.0f;
-    if (roundCount >= 4)
-    {
-      roundBroadcaster->sendChangeMessage();
-    }
-    else if (samples)
+
+    // If the audio should be playing get the sample to output
+    if (isPlaying && samples)
     {
       sample = samples[currentSample] * 0.2f;
       assert(sample <= 1.0f && sample >= -1.0f);
     }
-    //assert(leftInput[sampleIndex] ==0);
-    //Left Channel
-    //leftOutput[sampleIndex] = sample;
-    //Right Channel
-    //rightOutput[sampleIndex] = sample;
 
     //Left Channel
     buffer.setSample(0, sampleIndex, sample);
@@ -139,10 +159,16 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
     ++currentSample;
   }
 }
-void RhythmProcessor::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster)
+void RhythmProcessor::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster)
 {
   this->roundBroadcaster = roundBroadcaster;
   this->clapBroadcaster = clapBroadcaster;
+  this->loseBroadcaster = loseBroadcaster;
+  this->offBeatBroadcaster = offBeatBroadcaster;
+}
+
+void RhythmProcessor::setSensitivity(float sensitivity){
+    threshold = sensitivity;
 }
 
 void RhythmProcessor::generateRhythm(Beat *beats, int totalBeats, float secPerBeat)
@@ -173,7 +199,6 @@ void RhythmProcessor::generateRhythm(Beat *beats, int totalBeats, float secPerBe
       {
 
         samples[sample + samplesPerBeat * beatIndex] = (float)std::sin(phase * phaseChange);
-        //phase += phaseChange;
         ++phase;
       }
     }
@@ -181,6 +206,8 @@ void RhythmProcessor::generateRhythm(Beat *beats, int totalBeats, float secPerBe
   roundCount = 0;
   currentSample = 0;
   currentBeat = 0;
+  missedBeats = 0;
+  isPlaying = true;
 }
 
 const juce::String RhythmProcessor::getName() const

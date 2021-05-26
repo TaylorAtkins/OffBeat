@@ -18,6 +18,22 @@ MainComponent::MainComponent() : juce::Component()
     startButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFFFFFFFF));
     startButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xFF000000));
 
+    addChildComponent(playAgainButton);
+    playAgainButton.setEnabled(false);
+    playAgainButton.setVisible(false);
+    playAgainButton.setButtonText("Play Again");
+    playAgainButton.addListener(this);
+    playAgainButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFFFFFFFF));
+    playAgainButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xFF000000));
+
+    addChildComponent(mainMenuButton);
+    mainMenuButton.setEnabled(false);
+    mainMenuButton.setVisible(false);
+    mainMenuButton.setButtonText("Main Menu");
+    mainMenuButton.addListener(this);
+    mainMenuButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFFFFFFFF));
+    mainMenuButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xFF000000));
+
     for (int i = 0; i < 4; ++i)
     {
         addChildComponent(playerNumberButtons[i]);
@@ -55,38 +71,55 @@ MainComponent::MainComponent() : juce::Component()
     playerNumberButtons[0].setToggleState(true, juce::dontSendNotification);
     playerNum = 1;
 
+    addChildComponent(sensitivityLabel);
+    sensitivityLabel.setText("Sensitivity", juce::dontSendNotification);
+    sensitivityLabel.setColour( juce::Label::outlineColourId, juce::Colour(0xFFFF658A));
+    
+    addChildComponent(sensitivitySlider);
+    sensitivitySlider.setRange(0.0, 1.0);
+    sensitivitySlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    sensitivitySlider.setColour( juce::Slider::trackColourId, juce::Colour(0xFFFF658A));
+    sensitivitySlider.setColour( juce::Slider::thumbColourId, juce::Colour(0xFFFFFFFF));
+    sensitivitySlider.setColour( juce::Slider::textBoxOutlineColourId, juce::Colour(0xFFFF658A));
+    sensitivitySlider.addListener(this);
+    sensitivityLabel.attachToComponent(&sensitivitySlider, true);
+    sensitivitySlider.setValue(0.5);
+    sensitivitySlider.setTextBoxStyle(juce::Slider::TextBoxRight ,true, sensitivityLabel.getWidth(), sensitivityLabel.getHeight());
+    sensitivity = 0.5f;
+    
     //addAndMakeVisible(roundBroadcaster);
     roundBroadcaster.addChangeListener(this);
     clapBroadcaster.addChangeListener(this);
+    loseBroadcaster.addChangeListener(this);
+    offBeatBroadcaster.addChangeListener(this);
+
+    metronome.setBroadcaster(&roundBroadcaster, &clapBroadcaster, &loseBroadcaster, &offBeatBroadcaster);
+    addChildComponent(metronome);
 
     roundLabel.setJustificationType(juce::Justification::centred);
-
     roundLabel.setFont(juce::Font(20.0, juce::Font::bold));
-    roundLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xFFFFFFFF));
-    // roundLabel.setColour(juce::Label::outlineColourId, juce::Colour(0xFFFF658A));
+    roundLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xFF000000));
     roundLabel.setColour(juce::Label::textColourId, juce::Colour(0xFFFF658A));
     rounds = 1;
     std::string message = "Round " + std::to_string(rounds);
     roundLabel.setText(message, juce::dontSendNotification);
     addChildComponent(roundLabel);
-    //addAndMakeVisible(roundLabel);
-    
+
+    clapLabel.setJustificationType(juce::Justification::centred);
     clapLabel.setFont(juce::Font(20.0, juce::Font::bold));
-    clapLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xFFFFFFFF));
+    clapLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xFF000000));
     clapLabel.setColour(juce::Label::textColourId, juce::Colour(0xFFFF658A));
-    claps = 0;
-    message = "Claps " + std::to_string(claps);
-    clapLabel.setText(message, juce::dontSendNotification);
-    //addChildComponent(clapLabel);
-    addAndMakeVisible(clapLabel);
-    
-    metronome.setBroadcaster(&roundBroadcaster, &clapBroadcaster);
-    addChildComponent(metronome);
+    addChildComponent(clapLabel);
+
+    scoreLabel.setJustificationType(juce::Justification::centred);
+    scoreLabel.setFont(juce::Font(20.0, juce::Font::bold));
+    scoreLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xFF000000));
+    scoreLabel.setColour(juce::Label::textColourId, juce::Colour(0xFFFF658A));
+    addChildComponent(scoreLabel);
 }
 
 MainComponent::~MainComponent()
 {
-    //delete metronome;
 }
 //==============================================================================
 
@@ -97,31 +130,33 @@ void MainComponent::paint(juce::Graphics &g)
 
 void MainComponent::resized()
 {
-    // This is called when the MainComponent is resized.
-    // If you add any child components, this is where you should
-    // update their positions.
-    metronome.setBounds(0, getHeight() / 4, getWidth(), getHeight() * 3 / 4);
+    metronome.setBounds(0, 0, getWidth(), getHeight());
 
-    int playButtonHeight = getHeight() / 8;
-    int playButtonWidth = getWidth() / 4;
-    playButton.setBounds(getWidth() / 2 - playButtonWidth / 2, getHeight() / 2 - playButtonHeight / 2, playButtonWidth, playButtonHeight);
-
-    int startButtonHeight = getHeight() / 8;
-    int startButtonWidth = getWidth() / 4;
-    startButton.setBounds(getWidth() / 2 - startButtonWidth / 2, getHeight() - (startButtonHeight + 10), startButtonWidth, startButtonHeight);
-
+    int buttonWidth = getWidth() / 4;
+    int buttonHeight = getHeight() / 8;
+    playButton.setBounds(getWidth() / 2 - buttonWidth / 2, getHeight() / 2 - buttonHeight / 2, buttonWidth, buttonHeight);
+    startButton.setBounds(getWidth() / 2 - buttonWidth / 2, getHeight() - (buttonHeight + 10), buttonWidth, buttonHeight);
+    playAgainButton.setBounds(buttonWidth * 3 / 4, getHeight() - (buttonHeight + 10), buttonWidth, buttonHeight);
+    mainMenuButton.setBounds(buttonWidth * 9 / 4, getHeight() - (buttonHeight + 10), buttonWidth, buttonHeight);
+    
     int playerButtonHeight = getHeight() / 4;
     int playerButtonWidth = playerButtonHeight;
     int spacing = (getWidth() - playerButtonWidth * 4) / 5;
+    int sliderHeight = getHeight() / 16;
+    
     for (int i = 0; i < 4; ++i)
     {
-        playerNumberButtons[i].setBounds((i + 1) * spacing + i * playerButtonWidth, getHeight() / 2 - playerButtonHeight / 2, playerButtonWidth, playerButtonHeight);
+        playerNumberButtons[i].setBounds((i + 1) * spacing + i * playerButtonWidth, getHeight() / 2 - playerButtonHeight / 2 + sliderHeight, playerButtonWidth, playerButtonHeight);
     }
-
+    
+    sensitivitySlider.setBounds(getWidth()/4 + sensitivityLabel.getWidth() / 2, getHeight() - (buttonHeight + 20 + sliderHeight), getWidth() / 2 , sliderHeight);
+    
     int roundLabelHeight = getHeight() / 4;
-    roundLabel.setBounds(0, getHeight() - roundLabelHeight, getWidth(), roundLabelHeight);
+    roundLabel.setBounds(0, getHeight() - (roundLabelHeight + 10), getWidth(), roundLabelHeight);
     int clapLabelHeight = getHeight() / 4;
     clapLabel.setBounds(0, 0, getWidth(), clapLabelHeight);
+    int scoreLabelHeight = getHeight() - (getHeight() / 6);
+    scoreLabel.setBounds(0, 0, getWidth(), scoreLabelHeight);
 }
 
 void MainComponent::buttonClicked(juce::Button *button)
@@ -134,6 +169,9 @@ void MainComponent::buttonClicked(juce::Button *button)
 
         startButton.setEnabled(true);
         startButton.setVisible(true);
+        
+        sensitivitySlider.setEnabled(true);
+        sensitivitySlider.setVisible(true);
 
         for (int i = 0; i < 4; ++i)
         {
@@ -145,19 +183,68 @@ void MainComponent::buttonClicked(juce::Button *button)
     {
         startButton.setEnabled(false);
         startButton.setVisible(false);
+        sensitivitySlider.setEnabled(false);
+        sensitivitySlider.setVisible(false);
 
         for (int i = 0; i < 4; ++i)
         {
             playerNumberButtons[i].setEnabled(false);
             playerNumberButtons[i].setVisible(false);
         }
-        showRoundBanner();
-        metronome.setPlayerNumber(playerNum);
-        metronome.newRhythm();
-        roundLabel.setVisible(true);
+
+        claps = 0;
+        offBeats = 0;
+        std::string message = "Claps " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
+        clapLabel.setText(message, juce::dontSendNotification);
         clapLabel.setVisible(true);
+
+        rounds = 1;
+        message = "Round " + std::to_string(rounds);
+        roundLabel.setText(message, juce::dontSendNotification);
+        roundLabel.setVisible(true);
+
+        metronome.updateSettings(playerNum, sensitivity);
+        metronome.newRhythm();
         metronome.setVisible(true);
-        ++rounds;
+    }
+    if (button == &playAgainButton)
+    {
+        scoreLabel.setVisible(false);
+        playAgainButton.setVisible(false);
+        playAgainButton.setEnabled(false);
+        mainMenuButton.setVisible(false);
+        mainMenuButton.setEnabled(false);
+
+        claps = 0;
+        offBeats = 0;
+        std::string message = "Claps " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
+        clapLabel.setText(message, juce::dontSendNotification);
+        clapLabel.setVisible(true);
+
+        rounds = 1;
+        message = "Round " + std::to_string(rounds);
+        roundLabel.setText(message, juce::dontSendNotification);
+        roundLabel.setVisible(true);
+
+        metronome.newRhythm();
+        metronome.setVisible(true);
+    }
+    if (button == &mainMenuButton)
+    {
+        scoreLabel.setVisible(false);
+        playAgainButton.setVisible(false);
+        playAgainButton.setEnabled(false);
+        mainMenuButton.setVisible(false);
+        mainMenuButton.setEnabled(false);
+        playButton.setEnabled(true);
+        playButton.setVisible(true);
+    }
+}
+
+void MainComponent::sliderValueChanged (juce::Slider* slider){
+    if(slider == &sensitivitySlider)
+    {
+        sensitivity = sensitivitySlider.getValue();
     }
 }
 
@@ -166,22 +253,44 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster *source)
     if (source == &roundBroadcaster)
     {
         metronome.setVisible(false);
+
+        ++rounds;
         std::string message = "Round " + std::to_string(rounds);
         roundLabel.setText(message, juce::dontSendNotification);
+
+        claps = 0;
+        offBeats = 0;
+        message = "Claps " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
+        clapLabel.setText(message, juce::dontSendNotification);
+
         metronome.newRhythm();
         metronome.setVisible(true);
-        claps = 0;
     }
-    if (source == &clapBroadcaster)
+    else if (source == &clapBroadcaster)
     {
         ++claps;
-        std::string message = "Claps " + std::to_string(claps);
+        std::string message = "Claps " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
         clapLabel.setText(message, juce::dontSendNotification);
     }
-}
+    else if (source == &offBeatBroadcaster)
+    {
+        ++offBeats;
+        std::string message = "Claps " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
+        clapLabel.setText(message, juce::dontSendNotification);
+    }
+    else if (source == &loseBroadcaster)
+    {
+        metronome.setVisible(false);
+        roundLabel.setVisible(false);
+        clapLabel.setVisible(false);
 
-void MainComponent::showRoundBanner()
-{
-    std::string message = "Round " + std::to_string(rounds);
-    roundLabel.setText(message, juce::dontSendNotification);
+        std::string message = "Final Score: " + std::to_string(rounds) + " Round/s";
+        scoreLabel.setText(message, juce::dontSendNotification);
+        scoreLabel.setVisible(true);
+
+        playAgainButton.setEnabled(true);
+        playAgainButton.setVisible(true);
+        mainMenuButton.setEnabled(true);
+        mainMenuButton.setVisible(true);
+    }
 }

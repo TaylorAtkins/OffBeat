@@ -26,8 +26,8 @@ public:
   void update() override;
   void paint(juce::Graphics &) override;
   void resized() override;
-  void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster);
-  void setPlayerNumber(int playerNum);
+  void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster);
+  void updateSettings(int playerNum, float sensitivity);
   void newRhythm();
   void mouseDoubleClick(const juce::MouseEvent &event) override;
 

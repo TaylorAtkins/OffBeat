@@ -38,14 +38,15 @@ MetronomeComponent::~MetronomeComponent()
   //delete audioManager;
 }
 
-void MetronomeComponent::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster)
+void MetronomeComponent::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster)
 {
-  audioManager.setBroadcaster(roundBroadcaster, clapBroadcaster);
+  audioManager.setBroadcaster(roundBroadcaster, clapBroadcaster, loseBroadcaster, offBeatBroadcaster);
 }
 
-void MetronomeComponent::setPlayerNumber(int playerNum)
+void MetronomeComponent::updateSettings(int playerNum, float sensitivity)
 {
   this->playerNum = playerNum;
+    audioManager.setSensitivity(sensitivity);
 }
 void MetronomeComponent::newRhythm()
 {

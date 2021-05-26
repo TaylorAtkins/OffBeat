@@ -24,11 +24,14 @@ AudioManager::~AudioManager()
   audioDevice.removeAudioCallback(&audioPlayer);
 }
 
-void AudioManager::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster)
+void AudioManager::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster)
 {
-  processor.setBroadcaster(roundBroadcaster, clapBroadcaster);
+  processor.setBroadcaster(roundBroadcaster, clapBroadcaster, loseBroadcaster, offBeatBroadcaster);
 }
 
+void AudioManager::setSensitivity(float sensitivity){
+    processor.setSensitivity(sensitivity);
+}
 void AudioManager::generateRhythm(Beat *beats, int totalBeats, float secPerBeat)
 {
   processor.generateRhythm(beats, totalBeats, secPerBeat);
