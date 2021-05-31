@@ -19,7 +19,7 @@ class AudioManager
 public:
   AudioManager();
   ~AudioManager();
-  void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster);
+    void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster);
     void setSensitivity(float sensitivity);
   void generateRhythm(Beat *beats, int totalBeats, float secPerBeat);
 

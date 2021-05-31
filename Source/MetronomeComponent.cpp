@@ -15,8 +15,6 @@
 //==============================================================================
 MetronomeComponent::MetronomeComponent()
 {
-  // In your constructor, you should add any child components, and
-  // initialise any special settings that your component needs.
   setFramesPerSecond(60);
   totalBeats = 0;
   currentBeat = 0;
@@ -26,21 +24,17 @@ MetronomeComponent::MetronomeComponent()
   previousFrames = 0;
   minBPM = 60;
   maxBPM = 200;
-  //audioManager = new AudioManagerComponent(roundBroadcaster);
-  //currentPlayer = 0;
 }
 
 MetronomeComponent::~MetronomeComponent()
 {
   if (beats)
     delete[] beats;
-
-  //delete audioManager;
 }
 
-void MetronomeComponent::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster)
+void MetronomeComponent::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster)
 {
-  audioManager.setBroadcaster(roundBroadcaster, clapBroadcaster, loseBroadcaster, offBeatBroadcaster);
+  audioManager.setBroadcaster(roundBroadcaster, onBeatBroadcaster, loseBroadcaster, offBeatBroadcaster);
 }
 
 void MetronomeComponent::updateSettings(int playerNum, float sensitivity)

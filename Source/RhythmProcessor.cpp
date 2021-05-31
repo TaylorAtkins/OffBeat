@@ -32,7 +32,7 @@ RhythmProcessor::RhythmProcessor()
   clapCount = 0;
   minDuration = 30;
   maxDuration = 500;
-  threshold = 0.30;
+  threshold = 0.00;
   windowSize = 30;
   for (int i = 0; i < windowSize; ++i)
     sampleWindow.push_back(0.0f);
@@ -96,6 +96,33 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
     int numSamples = buffer.getNumSamples();
     for (int sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex)
   {
+      // If we are on the next beat, verify number of claps and reset variables
+      if (isProcessing)
+      {
+        if (currentBeat != ((int)currentSample / samplesPerBeat))
+        {
+          // If more than one player clapped on a beat or a player clapper during a rest, end game
+          if ((clapCount != 1 && beats[currentBeat].player != 0) || (clapCount > 0 && beats[currentBeat].player == 0))
+          {
+            ++missedBeats;
+            offBeatBroadcaster->sendChangeMessage();
+          }
+          else{
+            onBeatBroadcaster->sendChangeMessage();
+          }
+            
+          // Resets clap detection variables
+          currentBeat = (int)(currentSample / samplesPerBeat);
+          soundDuration = 0;
+          clapCount = 0;
+            
+          // Clears samples in clap detection window from the previous beat
+          sampleWindow.clear();
+          for (int i = 0; i < windowSize; ++i)
+              sampleWindow.push_back(0.0f);
+        }
+      }
+      
     // If at the end of the rhythm, check is the rhythm should be played again
     if (currentSample >= totalSamples)
     {
@@ -109,7 +136,7 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
           // Starts processing audio input after the thythm has been played one time through
           isProcessing = true;
         }
-        else if (roundCount >= 4)
+        else if (roundCount >= 3)
         {
           // Triggers callback to generate new rhythm & pauses audio output and processing
           isPlaying = false;
@@ -117,13 +144,13 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
           if((float)missedBeats > (float)totalBeats * 3.0 / 2.0)
               loseBroadcaster->sendChangeMessage();
           else
-                roundBroadcaster->sendChangeMessage();
+              roundBroadcaster->sendChangeMessage();
         }
         ++roundCount;
       }
     }
 
-    // Process input audio looking for claps
+    // Process input audio to look for claps
     if (isProcessing)
     {
       //If we are on the next beat, verify number of claps and reset variables
@@ -134,6 +161,9 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
         {
           ++missedBeats;
           offBeatBroadcaster->sendChangeMessage();
+        }
+        else{
+          onBeatBroadcaster->sendChangeMessage();
         }
           
         // Resets clap detection variables
@@ -179,7 +209,7 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
         if (soundDuration >= minDuration && soundDuration <= maxDuration)
         {
           ++clapCount;
-          clapBroadcaster->sendChangeMessage();
+          //onBeatBroadcaster->sendChangeMessage();
         }
         soundDuration = 0;
       }
@@ -202,10 +232,10 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
   }
 }
 
-void RhythmProcessor::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster)
+void RhythmProcessor::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster)
 {
   this->roundBroadcaster = roundBroadcaster;
-  this->clapBroadcaster = clapBroadcaster;
+  this->onBeatBroadcaster = onBeatBroadcaster;
   this->loseBroadcaster = loseBroadcaster;
   this->offBeatBroadcaster = offBeatBroadcaster;
 }

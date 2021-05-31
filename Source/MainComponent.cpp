@@ -88,11 +88,11 @@ MainComponent::MainComponent() : juce::Component()
     sensitivity = 5.0f;
     
     roundBroadcaster.addChangeListener(this);
-    clapBroadcaster.addChangeListener(this);
+    onBeatBroadcaster.addChangeListener(this);
     loseBroadcaster.addChangeListener(this);
     offBeatBroadcaster.addChangeListener(this);
 
-    metronome.setBroadcaster(&roundBroadcaster, &clapBroadcaster, &loseBroadcaster, &offBeatBroadcaster);
+    metronome.setBroadcaster(&roundBroadcaster, &onBeatBroadcaster, &loseBroadcaster, &offBeatBroadcaster);
     addChildComponent(metronome);
 
     roundLabel.setJustificationType(juce::Justification::centred);
@@ -104,17 +104,17 @@ MainComponent::MainComponent() : juce::Component()
     roundLabel.setText(message, juce::dontSendNotification);
     addChildComponent(roundLabel);
 
-    clapLabel.setJustificationType(juce::Justification::centred);
-    clapLabel.setFont(juce::Font(20.0, juce::Font::bold));
-    clapLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xFF000000));
-    clapLabel.setColour(juce::Label::textColourId, juce::Colour(0xFFFF658A));
-    addChildComponent(clapLabel);
-
     scoreLabel.setJustificationType(juce::Justification::centred);
     scoreLabel.setFont(juce::Font(20.0, juce::Font::bold));
     scoreLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xFF000000));
     scoreLabel.setColour(juce::Label::textColourId, juce::Colour(0xFFFF658A));
     addChildComponent(scoreLabel);
+    
+    recordedBeatsLabel.setJustificationType(juce::Justification::centred);
+    recordedBeatsLabel.setFont(juce::Font(20.0, juce::Font::bold));
+    recordedBeatsLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xFF000000));
+    recordedBeatsLabel.setColour(juce::Label::textColourId, juce::Colour(0xFFFF658A));
+    addChildComponent(recordedBeatsLabel);
 }
 
 MainComponent::~MainComponent()
@@ -153,7 +153,7 @@ void MainComponent::resized()
     int roundLabelHeight = getHeight() / 4;
     roundLabel.setBounds(0, getHeight() - (roundLabelHeight + 10), getWidth(), roundLabelHeight);
     int clapLabelHeight = getHeight() / 4;
-    clapLabel.setBounds(0, 0, getWidth(), clapLabelHeight);
+    recordedBeatsLabel.setBounds(0, 0, getWidth(), clapLabelHeight);
     int scoreLabelHeight = getHeight() - (getHeight() / 6);
     scoreLabel.setBounds(0, 0, getWidth(), scoreLabelHeight);
 }
@@ -193,9 +193,9 @@ void MainComponent::buttonClicked(juce::Button *button)
 
         claps = 0;
         offBeats = 0;
-        std::string message = "Claps " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
-        clapLabel.setText(message, juce::dontSendNotification);
-        clapLabel.setVisible(true);
+        std::string message = "OnBeats " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
+        recordedBeatsLabel.setText(message, juce::dontSendNotification);
+        recordedBeatsLabel.setVisible(true);
 
         rounds = 1;
         message = "Round " + std::to_string(rounds);
@@ -209,6 +209,7 @@ void MainComponent::buttonClicked(juce::Button *button)
     if (button == &playAgainButton)
     {
         scoreLabel.setVisible(false);
+        recordedBeatsLabel.setVisible(false);
         playAgainButton.setVisible(false);
         playAgainButton.setEnabled(false);
         mainMenuButton.setVisible(false);
@@ -216,9 +217,9 @@ void MainComponent::buttonClicked(juce::Button *button)
 
         claps = 0;
         offBeats = 0;
-        std::string message = "Claps " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
-        clapLabel.setText(message, juce::dontSendNotification);
-        clapLabel.setVisible(true);
+        std::string message = "OnBeats " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
+        recordedBeatsLabel.setText(message, juce::dontSendNotification);
+        recordedBeatsLabel.setVisible(true);
 
         rounds = 1;
         message = "Round " + std::to_string(rounds);
@@ -231,6 +232,7 @@ void MainComponent::buttonClicked(juce::Button *button)
     if (button == &mainMenuButton)
     {
         scoreLabel.setVisible(false);
+        recordedBeatsLabel.setVisible(false);
         playAgainButton.setVisible(false);
         playAgainButton.setEnabled(false);
         mainMenuButton.setVisible(false);
@@ -259,31 +261,31 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster *source)
 
         claps = 0;
         offBeats = 0;
-        message = "Claps " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
-        clapLabel.setText(message, juce::dontSendNotification);
+        message = "OnBeats " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
+        recordedBeatsLabel.setText(message, juce::dontSendNotification);
 
         metronome.newRhythm();
         metronome.setVisible(true);
     }
-    else if (source == &clapBroadcaster)
+    else if (source == &onBeatBroadcaster)
     {
         ++claps;
-        std::string message = "Claps " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
-        clapLabel.setText(message, juce::dontSendNotification);
+        std::string message = "OnBeats " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
+        recordedBeatsLabel.setText(message, juce::dontSendNotification);
     }
     else if (source == &offBeatBroadcaster)
     {
         ++offBeats;
-        std::string message = "Claps " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
-        clapLabel.setText(message, juce::dontSendNotification);
+        std::string message = "OnBeats " + std::to_string(claps) + " OffBeats: " + std::to_string(offBeats);
+        recordedBeatsLabel.setText(message, juce::dontSendNotification);
     }
     else if (source == &loseBroadcaster)
     {
         metronome.setVisible(false);
         roundLabel.setVisible(false);
-        clapLabel.setVisible(false);
+        recordedBeatsLabel.setVisible(true);
 
-        std::string message = "Final Score: " + std::to_string(rounds) + " Round/s";
+        std::string message = "You played too many offBeats!\nYou Lose!\nFinal Score: " + std::to_string(rounds) + " Round/s";
         scoreLabel.setText(message, juce::dontSendNotification);
         scoreLabel.setVisible(true);
 

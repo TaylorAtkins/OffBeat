@@ -24,9 +24,9 @@ AudioManager::~AudioManager()
   audioDevice.removeAudioCallback(&audioPlayer);
 }
 
-void AudioManager::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster)
+void AudioManager::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster)
 {
-  processor.setBroadcaster(roundBroadcaster, clapBroadcaster, loseBroadcaster, offBeatBroadcaster);
+  processor.setBroadcaster(roundBroadcaster, onBeatBroadcaster, loseBroadcaster, offBeatBroadcaster);
 }
 
 void AudioManager::setSensitivity(float sensitivity){

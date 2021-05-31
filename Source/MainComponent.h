@@ -37,7 +37,7 @@ private:
     int playerNum;
     float sensitivity;
     juce::ChangeBroadcaster roundBroadcaster;
-    juce::ChangeBroadcaster clapBroadcaster;
+    juce::ChangeBroadcaster onBeatBroadcaster;
     juce::ChangeBroadcaster loseBroadcaster;
     juce::ChangeBroadcaster offBeatBroadcaster;
     int rounds;
@@ -45,7 +45,7 @@ private:
     int offBeats;
     juce::Label sensitivityLabel;
     juce::Label roundLabel;
-    juce::Label clapLabel;
+    juce::Label recordedBeatsLabel;
     juce::Label scoreLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)

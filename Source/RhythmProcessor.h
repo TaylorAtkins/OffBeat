@@ -22,7 +22,7 @@ public:
   void releaseResources() override;
   //void processBlockBypassed(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) override;
   void processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) override;
-  void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcastero, juce::ChangeBroadcaster *offBeatBroadcaster);
+    void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster);
   void generateRhythm(Beat *beats, int totalBeats, float secPerBeat);
     void setSensitivity(float sensitivity);
     void loadFilterCoeffs();
@@ -66,7 +66,7 @@ private:
   float *frequencies;
   Beat *beats;
   juce::ChangeBroadcaster *roundBroadcaster;
-  juce::ChangeBroadcaster *clapBroadcaster;
+  juce::ChangeBroadcaster *onBeatBroadcaster;
   juce::ChangeBroadcaster *loseBroadcaster;
   juce::ChangeBroadcaster *offBeatBroadcaster;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RhythmProcessor)
