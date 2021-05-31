@@ -25,6 +25,7 @@ public:
   void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcastero, juce::ChangeBroadcaster *offBeatBroadcaster);
   void generateRhythm(Beat *beats, int totalBeats, float secPerBeat);
     void setSensitivity(float sensitivity);
+    void loadFilterCoeffs();
 
   const juce::String getName() const override;
   virtual double getTailLengthSeconds() const override;
@@ -58,6 +59,8 @@ private:
   int maxDuration;
   float threshold;
   std::list<float> sampleWindow;
+  std::vector<float> filterCoeffs;
+  int coeffNum;
   float toneDuration;
   float currentSampleRate;
   float *frequencies;

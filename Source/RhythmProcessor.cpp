@@ -30,14 +30,15 @@ RhythmProcessor::RhythmProcessor()
 
   soundDuration = 0;
   clapCount = 0;
-  minDuration = 20;
+  minDuration = 30;
   maxDuration = 500;
   threshold = 0.30;
-  windowSize = 20;
+  windowSize = 30;
   for (int i = 0; i < windowSize; ++i)
     sampleWindow.push_back(0.0f);
 
   currentBeat = 0;
+  loadFilterCoeffs();
 }
 
 RhythmProcessor::~RhythmProcessor()
@@ -46,6 +47,39 @@ RhythmProcessor::~RhythmProcessor()
   delete[] frequencies;
   if (samples)
     delete[] samples;
+}
+
+void RhythmProcessor::loadFilterCoeffs(){
+    // Loads coefficients from binary resource file "filterCoeffs.txt"
+    juce::String coeffString = BinaryData::filterCoeffs_txt;
+    int startIndex = 0;
+    int endIndex = 0;
+    int strLen = coeffString.length();
+    do{
+        if(coeffString[startIndex] != '\n'){
+            // Parse the next coefficient in the string and add it to the vector of coefficients
+            endIndex = coeffString.indexOf(startIndex, "\n");
+            try{
+                float coefficient = 0;
+                if( endIndex == -1)
+                    coefficient = coeffString.substring(startIndex, strLen).getFloatValue();
+                else
+                    coefficient = coeffString.substring(startIndex, endIndex).getFloatValue();
+                filterCoeffs.push_back(coefficient);
+            }
+            catch(...){
+                std::cerr << "Failed to parse necessary resource file \"filterCoeffs.txt\"\n";
+                filterCoeffs.clear();
+                coeffNum = 0;
+            }
+            startIndex = endIndex + 1;
+    
+        }
+        else
+            ++startIndex;
+    }while(endIndex != -1 && startIndex < strLen);
+
+    coeffNum = (int) filterCoeffs.size();
 }
 
 void RhythmProcessor::prepareToPlay(double sampleRate, int maximumExpectedSamplesPerBlock)
@@ -59,7 +93,8 @@ void RhythmProcessor::releaseResources()
 
 void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages)
 {
-  for (int sampleIndex = 0; sampleIndex < buffer.getNumSamples(); ++sampleIndex)
+    int numSamples = buffer.getNumSamples();
+    for (int sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex)
   {
     // If at the end of the rhythm, check is the rhythm should be played again
     if (currentSample >= totalSamples)
@@ -77,15 +112,18 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
         else if (roundCount >= 4)
         {
           // Triggers callback to generate new rhythm & pauses audio output and processing
-          roundBroadcaster->sendChangeMessage();
           isPlaying = false;
           isProcessing = false;
+          if((float)missedBeats > (float)totalBeats * 3.0 / 2.0)
+              loseBroadcaster->sendChangeMessage();
+          else
+                roundBroadcaster->sendChangeMessage();
         }
         ++roundCount;
       }
     }
 
-    // Process input audio lokking for claps
+    // Process input audio looking for claps
     if (isProcessing)
     {
       //If we are on the next beat, verify number of claps and reset variables
@@ -96,29 +134,36 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
         {
           ++missedBeats;
           offBeatBroadcaster->sendChangeMessage();
-          if (missedBeats >= 3)
-          {
-            loseBroadcaster->sendChangeMessage();
-            isPlaying = false;
-            isProcessing = false;
-          }
         }
+          
+        // Resets clap detection variables
         currentBeat = (int)(currentSample / samplesPerBeat);
-        //soundDuration = 0;
+        soundDuration = 0;
         clapCount = 0;
+          
+        // Clears samples in clap detection window from the previous beat
+        sampleWindow.clear();
+        for (int i = 0; i < windowSize; ++i)
+            sampleWindow.push_back(0.0f);
       }
 
-      //Average the left and right inputs
-      //float input = buffer.getSample(0, sampleIndex) * buffer.getSample(1, sampleIndex) / 2.0f;
+      float filteredSample = 0.0;
+      for(int coeffIndex = 0; coeffIndex < coeffNum; ++coeffIndex)
+      {
+        if(sampleIndex - coeffIndex >= 0)
+          filteredSample += filterCoeffs[coeffIndex] * buffer.getSample(0, sampleIndex - coeffIndex);
+      }
+        //filteredSample *= 50.0;
 
-      float input = buffer.getSample(0, sampleIndex);
+      //float filteredSample = buffer.getSample(0, sampleIndex);
 
       // Update window with new value
-      sampleWindow.push_back(input);
+      sampleWindow.push_back(filteredSample);
       sampleWindow.pop_front();
 
-      float average = 0.0;
+      
       //Average all values in sampleWindow
+      float average = 0.0;
       for (float sampleToAverage : sampleWindow)
       {
         average += sampleToAverage;
@@ -138,13 +183,10 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
         }
         soundDuration = 0;
       }
-
-      //assert(soundDuration ==0);
     }
 
-    float sample = 0.0f;
-
     // If the audio should be playing get the sample to output
+    float sample = 0.0f;
     if (isPlaying && samples)
     {
       sample = samples[currentSample] * 0.2f;
@@ -159,6 +201,7 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
     ++currentSample;
   }
 }
+
 void RhythmProcessor::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *clapBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster)
 {
   this->roundBroadcaster = roundBroadcaster;
@@ -168,7 +211,7 @@ void RhythmProcessor::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, 
 }
 
 void RhythmProcessor::setSensitivity(float sensitivity){
-    threshold = sensitivity;
+    threshold = 0.004 + sensitivity * 0.0002;
 }
 
 void RhythmProcessor::generateRhythm(Beat *beats, int totalBeats, float secPerBeat)

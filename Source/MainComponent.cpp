@@ -76,18 +76,17 @@ MainComponent::MainComponent() : juce::Component()
     sensitivityLabel.setColour( juce::Label::outlineColourId, juce::Colour(0xFFFF658A));
     
     addChildComponent(sensitivitySlider);
-    sensitivitySlider.setRange(0.0, 1.0);
+    sensitivitySlider.setRange(1.0, 10.0, 1);
     sensitivitySlider.setSliderStyle(juce::Slider::LinearHorizontal);
     sensitivitySlider.setColour( juce::Slider::trackColourId, juce::Colour(0xFFFF658A));
     sensitivitySlider.setColour( juce::Slider::thumbColourId, juce::Colour(0xFFFFFFFF));
     sensitivitySlider.setColour( juce::Slider::textBoxOutlineColourId, juce::Colour(0xFFFF658A));
     sensitivitySlider.addListener(this);
     sensitivityLabel.attachToComponent(&sensitivitySlider, true);
-    sensitivitySlider.setValue(0.5);
+    sensitivitySlider.setValue(5.0);
     sensitivitySlider.setTextBoxStyle(juce::Slider::TextBoxRight ,true, sensitivityLabel.getWidth(), sensitivityLabel.getHeight());
-    sensitivity = 0.5f;
+    sensitivity = 5.0f;
     
-    //addAndMakeVisible(roundBroadcaster);
     roundBroadcaster.addChangeListener(this);
     clapBroadcaster.addChangeListener(this);
     loseBroadcaster.addChangeListener(this);

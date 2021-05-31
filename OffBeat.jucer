@@ -3,6 +3,10 @@
 <JUCERPROJECT id="IyyU90" name="OffBeat" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="a6Ah90" name="OffBeat">
+    <GROUP id="{0196D2AB-C153-B01D-1CF6-CE9DD5422277}" name="Resources">
+      <FILE id="vqxKeW" name="filterCoeffs.txt" compile="0" resource="1"
+            file="Resources/filterCoeffs.txt"/>
+    </GROUP>
     <GROUP id="{A58257E1-4033-2090-3247-DD42229C0E4C}" name="Source">
       <FILE id="QEhpne" name="AudioManager.cpp" compile="1" resource="0"
             file="Source/AudioManager.cpp"/>
