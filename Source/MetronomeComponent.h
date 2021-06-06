@@ -11,6 +11,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+
 #include "AudioManager.h"
 #include "Beat.h"
 
@@ -26,21 +27,21 @@ public:
   void update() override;
   void paint(juce::Graphics &) override;
   void resized() override;
-    void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster);
-  void updateSettings(int playerNum, float sensitivity);
+  void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster, juce::ChangeBroadcaster *clapBroadcaster);
+  void updateSettings(int playerNum, float sensitivity, bool debug);
   void newRhythm();
   void mouseDoubleClick(const juce::MouseEvent &event) override;
 
 private:
+  AudioManager audioManager;
+  Beat *beats;
   int playerNum;
   int totalBeats;
   int currentBeat;
   int previousFrames;
-  //int currentPlayer;
-  float secPerBeat;
   int minBPM;
   int maxBPM;
-  Beat *beats;
-  AudioManager audioManager;
+  float secPerBeat;
+    
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MetronomeComponent)
 };

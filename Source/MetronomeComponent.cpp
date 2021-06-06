@@ -1,18 +1,9 @@
-/*
-  ==============================================================================
-
-    MetronomeComponent.cpp
-    Created: 6 May 2021 1:32:28pm
-    Author:  Taylor Atkins
-
-  ==============================================================================
-*/
-
-#include <JuceHeader.h>
 #include "MetronomeComponent.h"
+
 #include <iostream>
 
-//==============================================================================
+#include <JuceHeader.h>
+
 MetronomeComponent::MetronomeComponent()
 {
   setFramesPerSecond(60);
@@ -32,15 +23,15 @@ MetronomeComponent::~MetronomeComponent()
     delete[] beats;
 }
 
-void MetronomeComponent::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster)
+void MetronomeComponent::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster, juce::ChangeBroadcaster *clapBroadcaster)
 {
-  audioManager.setBroadcaster(roundBroadcaster, onBeatBroadcaster, loseBroadcaster, offBeatBroadcaster);
+  audioManager.setBroadcaster(roundBroadcaster, onBeatBroadcaster, loseBroadcaster, offBeatBroadcaster, clapBroadcaster);
 }
 
-void MetronomeComponent::updateSettings(int playerNum, float sensitivity)
+void MetronomeComponent::updateSettings(int playerNum, float sensitivity, bool debug)
 {
   this->playerNum = playerNum;
-    audioManager.setSensitivity(sensitivity);
+    audioManager.updateSettings(sensitivity, debug);
 }
 void MetronomeComponent::newRhythm()
 {

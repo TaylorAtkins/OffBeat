@@ -21,32 +21,39 @@ public:
     MainComponent();
     ~MainComponent() override;
     void buttonClicked(juce::Button *button) override;
-    void sliderValueChanged (juce::Slider* slider) override;
+    void sliderValueChanged(juce::Slider *slider) override;
     void paint(juce::Graphics &) override;
     void resized() override;
     void changeListenerCallback(juce::ChangeBroadcaster *source) override;
 
 private:
-    MetronomeComponent metronome;
     juce::TextButton playButton;
+    juce::TextButton instructionsButton;
+    juce::TextButton backButton;
     juce::TextButton startButton;
     juce::TextButton playAgainButton;
     juce::TextButton mainMenuButton;
     juce::TextButton playerNumberButtons[4];
+    juce::ToggleButton debugCheckbox;
     juce::Slider sensitivitySlider;
-    int playerNum;
-    float sensitivity;
     juce::ChangeBroadcaster roundBroadcaster;
     juce::ChangeBroadcaster onBeatBroadcaster;
     juce::ChangeBroadcaster loseBroadcaster;
     juce::ChangeBroadcaster offBeatBroadcaster;
-    int rounds;
-    int claps;
-    int offBeats;
+    juce::ChangeBroadcaster clapBroadcaster;
+    juce::Label instructionsLabel;
     juce::Label sensitivityLabel;
     juce::Label roundLabel;
     juce::Label recordedBeatsLabel;
     juce::Label scoreLabel;
+    MetronomeComponent metronome;
+    int playerNum;
+    int rounds;
+    int claps;
+    int onBeats;
+    int offBeats;
+    bool debug;
+    float sensitivity;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

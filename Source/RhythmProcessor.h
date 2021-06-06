@@ -1,17 +1,10 @@
-/*
-  ==============================================================================
-
-    RhythmProcessor.h
-    Created: 22 May 2021 9:14:43pm
-    Author:  Taylor Atkins
-
-  ==============================================================================
-*/
-#include <JuceHeader.h>
-#include <iostream>
-#include "Beat.h"
-
 #pragma once
+
+#include <iostream>
+
+#include <JuceHeader.h>
+
+#include "Beat.h"
 
 class RhythmProcessor : public juce::AudioProcessor
 {
@@ -20,12 +13,11 @@ public:
   ~RhythmProcessor();
   void prepareToPlay(double sampleRate, int maximumExpectedSamplesPerBlock) override;
   void releaseResources() override;
-  //void processBlockBypassed(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) override;
   void processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) override;
-    void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster);
+  void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster, juce::ChangeBroadcaster *clapBroadcaster);
   void generateRhythm(Beat *beats, int totalBeats, float secPerBeat);
-    void setSensitivity(float sensitivity);
-    void loadFilterCoeffs();
+  void updateSettings(float sensitivity, bool debug);
+  void loadFilterCoeffs();
 
   const juce::String getName() const override;
   virtual double getTailLengthSeconds() const override;
@@ -42,9 +34,17 @@ public:
   void setStateInformation(const void *data, int sizeInBytes) override;
 
 private:
+  juce::ChangeBroadcaster *roundBroadcaster;
+  juce::ChangeBroadcaster *onBeatBroadcaster;
+  juce::ChangeBroadcaster *loseBroadcaster;
+  juce::ChangeBroadcaster *offBeatBroadcaster;
+  juce::ChangeBroadcaster *clapBroadcaster;
+  std::list<float> sampleWindow;
+  std::vector<float> filterCoeffs;
+  Beat *beats;
   bool isPlaying;
   bool isProcessing;
-  float *samples;
+  bool debug;
   int currentSample;
   int totalSamples;
   int samplesPerBeat;
@@ -57,17 +57,11 @@ private:
   int clapCount;
   int minDuration;
   int maxDuration;
-  float threshold;
-  std::list<float> sampleWindow;
-  std::vector<float> filterCoeffs;
   int coeffNum;
+  float threshold;
   float toneDuration;
   float currentSampleRate;
   float *frequencies;
-  Beat *beats;
-  juce::ChangeBroadcaster *roundBroadcaster;
-  juce::ChangeBroadcaster *onBeatBroadcaster;
-  juce::ChangeBroadcaster *loseBroadcaster;
-  juce::ChangeBroadcaster *offBeatBroadcaster;
+  float *samples;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RhythmProcessor)
 };
