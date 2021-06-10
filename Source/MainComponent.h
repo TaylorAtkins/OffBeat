@@ -4,17 +4,12 @@
 #include "MetronomeComponent.h"
 #include <unistd.h>
 
-//==============================================================================
-/*
-    This component lives inside our window, and this is where you should put all
-    your controls and content.
-*/
-//==============================================================================
 enum RadioButtonIds
 {
     PlayerNumber = 1001
 };
 
+// This component is the main comonent in the GUI window. All other components reside within this component
 class MainComponent : public juce::Component, public juce::Button::Listener, public juce::ChangeListener, public juce::Slider::Listener
 {
 public:
@@ -42,17 +37,18 @@ private:
     juce::ChangeBroadcaster offBeatBroadcaster;
     juce::ChangeBroadcaster clapBroadcaster;
     juce::Label instructionsLabel;
+    juce::Label playerNumLabel;
     juce::Label sensitivityLabel;
     juce::Label roundLabel;
     juce::Label recordedBeatsLabel;
     juce::Label scoreLabel;
     MetronomeComponent metronome;
+    bool debug;
     int playerNum;
     int rounds;
     int claps;
     int onBeats;
     int offBeats;
-    bool debug;
     float sensitivity;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)

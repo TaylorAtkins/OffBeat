@@ -1,12 +1,9 @@
 #include "MetronomeComponent.h"
-
 #include <iostream>
-
 #include <JuceHeader.h>
 
 MetronomeComponent::MetronomeComponent()
 {
-  setFramesPerSecond(60);
   totalBeats = 0;
   currentBeat = 0;
   playerNum = 2;
@@ -15,6 +12,9 @@ MetronomeComponent::MetronomeComponent()
   previousFrames = 0;
   minBPM = 60;
   maxBPM = 200;
+
+  // Sets number of frames in metrenome animation
+  setFramesPerSecond(60);
 }
 
 MetronomeComponent::~MetronomeComponent()
@@ -31,13 +31,15 @@ void MetronomeComponent::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaste
 void MetronomeComponent::updateSettings(int playerNum, float sensitivity, bool debug)
 {
   this->playerNum = playerNum;
-    audioManager.updateSettings(sensitivity, debug);
+  audioManager.updateSettings(sensitivity, debug);
 }
+
 void MetronomeComponent::newRhythm()
 {
   if (beats)
     delete[] beats;
 
+  // Randomly set umber of beats in the rhythm
   auto &random = juce::Random::getSystemRandom();
   totalBeats = random.nextInt(juce::Range<int>(playerNum, playerNum * 3));
 
@@ -58,9 +60,10 @@ void MetronomeComponent::newRhythm()
     colorDisbursement = new int[assignOptions];
   }
 
-  //Ensures each player is assigned atleast one beat
+  //Ensure each player is assigned atleast one beat
   for (int i = 0; i < playerNum; ++i)
     colorDisbursement[i] = 1;
+
   int toBeAssigned = totalBeats - playerNum;
 
   // Randomly distributes the rest of the beats between the players and rests
@@ -84,6 +87,7 @@ void MetronomeComponent::newRhythm()
     }
 
     colorDisbursement[assignment] -= 1;
+
     // Assign each beat a player number and color
     if (assignment == 0)
     {
@@ -131,13 +135,8 @@ void MetronomeComponent::newRhythm()
 
   previousFrames = getFrameCounter();
   secPerBeat = 60.0 / (float)(random.nextInt(juce::Range<int>(minBPM, maxBPM)));
-  //secPerBeat = 0.5;
   currentBeat = 0;
   audioManager.generateRhythm(beats, totalBeats, secPerBeat);
-}
-
-void MetronomeComponent::update()
-{
 }
 
 void MetronomeComponent::paint(juce::Graphics &g)
@@ -146,34 +145,33 @@ void MetronomeComponent::paint(juce::Graphics &g)
   {
     currentBeat = int((getFrameCounter() - previousFrames) / 60.0 / secPerBeat) % totalBeats;
   }
+
   g.fillAll(juce::Colour(0xFF000000));
 
   if (beats)
   {
     int spacing = juce::Component::getWidth() / (totalBeats + 1);
     int height = juce::Component::getHeight() / 2;
+
+    // Draw the beats for the metrenome animation
     for (int i = 0; i < totalBeats; ++i)
     {
       if (i == currentBeat)
       {
+        // Highlight the current beat
         g.setColour(beats[i].selectedColor);
         g.fillEllipse((i + 1) * spacing - 15, height - 15, 60, 60);
         g.setColour(beats[i].defaultColor);
       }
       else
+      {
         g.setColour(beats[i].defaultColor);
+      }
       g.fillEllipse((i + 1) * spacing, height, 30, 30);
     }
   }
 }
 
-void MetronomeComponent::resized()
-{
-  // This method is where you should set the bounds of any child
-  // components that your component contains..
-}
+void MetronomeComponent::resized() {}
 
-void MetronomeComponent::mouseDoubleClick(const juce::MouseEvent &event)
-{
-  newRhythm();
-}
+void MetronomeComponent::update() {}

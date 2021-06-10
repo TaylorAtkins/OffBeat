@@ -1,9 +1,7 @@
 #pragma once
 
 #include <iostream>
-
 #include <JuceHeader.h>
-
 #include "RhythmProcessor.h"
 
 // Manages
@@ -17,8 +15,9 @@ public:
   void generateRhythm(Beat *beats, int totalBeats, float secPerBeat);
 
 private:
-  RhythmProcessor processor;
   juce::AudioProcessorPlayer audioPlayer;
   juce::AudioDeviceManager audioDevice;
+  RhythmProcessor processor;
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioManager)
 };

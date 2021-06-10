@@ -30,7 +30,6 @@ public:
   void setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, juce::ChangeBroadcaster *onBeatBroadcaster, juce::ChangeBroadcaster *loseBroadcaster, juce::ChangeBroadcaster *offBeatBroadcaster, juce::ChangeBroadcaster *clapBroadcaster);
   void updateSettings(int playerNum, float sensitivity, bool debug);
   void newRhythm();
-  void mouseDoubleClick(const juce::MouseEvent &event) override;
 
 private:
   AudioManager audioManager;
@@ -42,6 +41,6 @@ private:
   int minBPM;
   int maxBPM;
   float secPerBeat;
-    
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MetronomeComponent)
 };

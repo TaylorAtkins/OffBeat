@@ -11,41 +11,45 @@
 
 RhythmProcessor::RhythmProcessor()
 {
+  roundBroadcaster = nullptr;
+  onBeatBroadcaster = nullptr;
+  loseBroadcaster = nullptr;
+  offBeatBroadcaster = nullptr;
+  clapBroadcaster = nullptr;
+  beats = nullptr;
   samples = nullptr;
-  currentSample = 0;
-  roundCount = 0;
+
+  windowSize = 20;
+  for (int i = 0; i < windowSize; ++i)
+    sampleWindow.push_back(0.0f);
+
   isPlaying = false;
   isProcessing = false;
   debug = false;
+  currentSampleRate = 48000;
+  samplesPerBeat = 0;
+  totalBeats = 0;
+  soundDuration = 0;
+  currentSample = 0;
+  currentBeat = 0;
+  clapCount = 0;
+  roundCount = 0;
+  minDuration = 30;
+  maxDuration = 500;
+  threshold = 0.0f;
   toneDuration = 0.25f;
-  frequencies = new float[5];
+
   frequencies[0] = 0.00;   // No Audio (Rest)
   frequencies[1] = 293.66; // D4
   frequencies[2] = 369.99; // F#4
   frequencies[3] = 440.00; // A4
   frequencies[4] = 523.25; // C5
-  currentSampleRate = 48000;
-  samplesPerBeat = 0;
-  beats = nullptr;
-  totalBeats = 0;
 
-  soundDuration = 0;
-  clapCount = 0;
-  minDuration = 30;
-  maxDuration = 500;
-  threshold = 0.00;
-  windowSize = 20;
-  for (int i = 0; i < windowSize; ++i)
-    sampleWindow.push_back(0.0f);
-
-  currentBeat = 0;
   loadFilterCoeffs();
 }
 
 RhythmProcessor::~RhythmProcessor()
 {
-
-  delete[] frequencies;
   if (samples)
     delete[] samples;
 }
@@ -53,7 +57,7 @@ RhythmProcessor::~RhythmProcessor()
 void RhythmProcessor::loadFilterCoeffs()
 {
   // Loads coefficients from binary resource file "filterCoeffs.txt"
-  juce::String coeffString = BinaryData::filterCoeffs_txt;
+  juce::String coeffString = BinaryData::FilterCoeffs_txt;
   int startIndex = 0;
   int endIndex = 0;
   int strLen = coeffString.length();
@@ -96,9 +100,7 @@ void RhythmProcessor::prepareToPlay(double sampleRate, int maximumExpectedSample
   currentSampleRate = sampleRate;
 }
 
-void RhythmProcessor::releaseResources()
-{
-}
+void RhythmProcessor::releaseResources() {}
 
 void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages)
 {
@@ -152,9 +154,13 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
           isPlaying = false;
           isProcessing = false;
           if ((float)missedBeats > (float)totalBeats * 3.0 / 2.0)
+          {
             loseBroadcaster->sendChangeMessage();
+          }
           else
+          {
             roundBroadcaster->sendChangeMessage();
+          }
         }
         ++roundCount;
       }
@@ -208,18 +214,21 @@ void RhythmProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiB
       }
       average /= (float)windowSize;
 
+      // Check if noise was loud enough to be a clap
       if (average > threshold)
       {
         ++soundDuration;
       }
       else
       {
+        // Check if the noise was the correct duration of a clap
         if (soundDuration >= minDuration && soundDuration <= maxDuration)
         {
           ++clapCount;
-          if(debug)
+
+          if (debug)
           {
-              clapBroadcaster->sendChangeMessage();
+            clapBroadcaster->sendChangeMessage();
           }
         }
         soundDuration = 0;
@@ -254,32 +263,38 @@ void RhythmProcessor::setBroadcaster(juce::ChangeBroadcaster *roundBroadcaster, 
 
 void RhythmProcessor::updateSettings(float sensitivity, bool debug)
 {
+  // This seems to be a good range for the treshold
   threshold = 0.004 + sensitivity * 0.0002;
   this->debug = debug;
 }
 
 void RhythmProcessor::generateRhythm(Beat *beats, int totalBeats, float secPerBeat)
 {
+  this->totalBeats = totalBeats;
+  this->beats = beats;
+
+  // Initialize array for audio output samples
   if (samples)
     delete[] samples;
 
   totalSamples = secPerBeat * totalBeats * currentSampleRate;
   samples = new float[totalSamples];
-  samplesPerBeat = secPerBeat * currentSampleRate;
-  this->totalBeats = totalBeats;
-  this->beats = beats;
-  float waitTime = (secPerBeat - toneDuration) / 2.0f;
-  if (waitTime < 0)
-    waitTime = 0.0f;
   for (int i = 0; i < totalSamples; ++i)
     samples[i] = 0.0f;
 
+  samplesPerBeat = secPerBeat * currentSampleRate;
+  float waitTime = (secPerBeat - toneDuration) / 2.0f;
+  if (waitTime < 0)
+    waitTime = 0.0f;
+
+  // Generate the samples for metronome output audio
   for (int beatIndex = 0; beatIndex < totalBeats; ++beatIndex)
   {
     float beatFrequency = frequencies[beats[beatIndex].player];
     float phaseChange = beatFrequency * 2.0f * juce::MathConstants<float>::pi / currentSampleRate;
     float phase = 0.0f;
 
+    // Generate sine wave samples for the current beat
     for (int sample = 0; sample < samplesPerBeat; ++sample)
     {
       if (((float)sample / currentSampleRate) > waitTime && ((float)sample / currentSampleRate) <= (waitTime + toneDuration))
@@ -290,6 +305,8 @@ void RhythmProcessor::generateRhythm(Beat *beats, int totalBeats, float secPerBe
       }
     }
   }
+
+  // Initialize audio processing variables
   roundCount = 0;
   currentSample = 0;
   currentBeat = 0;
@@ -297,19 +314,28 @@ void RhythmProcessor::generateRhythm(Beat *beats, int totalBeats, float secPerBe
   isPlaying = true;
 }
 
-const juce::String RhythmProcessor::getName() const
-{
-  return "RhythmProcessor";
-}
+const juce::String RhythmProcessor::getName() const { return "RhythmProcessor"; }
+
 double RhythmProcessor::getTailLengthSeconds() const { return 0.0; }
+
 bool RhythmProcessor::acceptsMidi() const { return false; }
+
 bool RhythmProcessor::producesMidi() const { return false; }
+
 juce::AudioProcessorEditor *RhythmProcessor::createEditor() { return nullptr; }
+
 bool RhythmProcessor::hasEditor() const { return false; }
+
 int RhythmProcessor::getNumPrograms() { return 0; }
+
 int RhythmProcessor::getCurrentProgram() { return 0; }
+
 void RhythmProcessor::setCurrentProgram(int index) {}
+
 const juce::String RhythmProcessor::getProgramName(int index) { return ""; }
+
 void RhythmProcessor::changeProgramName(int index, const juce::String &newName) {}
+
 void RhythmProcessor::getStateInformation(juce::MemoryBlock &destData) {}
+
 void RhythmProcessor::setStateInformation(const void *data, int sizeInBytes) {}
